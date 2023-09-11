@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Get Salesforce Account Info</title>
+</head>
+<body>
+    //To get access token And instanceUrl
+    <button onclick="authenticate()">Authenticate with Salesforce</button>
+    <br><br>
+
+    <h2>Retrieve Account Information from Salesforce</h2>
+    <label for="accountId">Enter Account ID:</label>
+    <input type="text" id="accountId">
+    <button onclick="getAccountInfo()">Fetch Account Info</button>
+
+    <h3>Account Information:</h3>
+    <pre id="accountInfo"></pre>
+
+    <script>
+        let accessToken = "";
+        let instanceUrl = "";
+
+        function authenticate() {
+            // Salesforce OAuth2 endpoint
+            const url = "https://login.salesforce.com/services/oauth2/authorize?" +
+                "response_type=token&" +
+                "client_id=3MVG9wt4IL4O5wvIrDAEJFQDJvMD4VqtSegQFnTAt88EWyGBs3gWpoFgA5Adxyc.VD6Z90TG5RAw6VwOv3pbK" +
+                "redirect_uri=https://www.google.com/";
+
+            window.location.href = url;
+        }
+
+        function parseReturnedHash() {
+            const hash = window.location.hash.substring(1);
+            const params = new URLSearchParams(hash);
+            accessToken = params.get("access_token");
+            instanceUrl = params.get("instance_url");
+        }
+
+        window.onload = () => {
+            parseReturnedHash();
+        }
+
+        function getAccountInfo() {
+            const accountId = document.getElementById('accountId').value;
+
+            if (accessToken && instanceUrl && accountId) {
+                fetch(`${instanceUrl}/services/data/v53.0/sobjects/Account/${accountId}`, {
+                    method: "GET",
+                    headers: {
+                        "Authorization": "Bearer " + accessToken,
+                        "Content-Type": "application/json"
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('accountInfo').textContent = JSON.stringify(data, null, 2);
+                })
+                .catch(error => {
+                    console.error("Error fetching account info:", error);
+                    alert("Error fetching account info. Check the console for more details.");
+                });
+            } else {
+                alert("Please provide a valid Account ID.");
+            }
+        }
+    </script>
+</body>
+</html>
