@@ -3,21 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Get Salesforce Account Info</title>
-</head>
-<body>
-    //To get access token And instanceUrl
-    <button onclick="authenticate()">Authenticate with Salesforce</button>
-    <br><br>
-
-    <h2>Retrieve Account Information from Salesforce</h2>
-    <label for="accountId">Enter Account ID:</label>
-    <input type="text" id="accountId">
-    <button onclick="getAccountInfo()">Fetch Account Info</button>
-
-    <h3>Account Information:</h3>
-    <pre id="accountInfo"></pre>
-
+    <title>Send Data to Salesforce</title>
     <script>
         let accessToken = "";
         let instanceUrl = "";
@@ -26,7 +12,7 @@
             // Salesforce OAuth2 endpoint
             const url = "https://login.salesforce.com/services/oauth2/authorize?" +
                 "response_type=token&" +
-                "client_id=3MVG9wt4IL4O5wvIrDAEJFQDJvMD4VqtSegQFnTAt88EWyGBs3gWpoFgA5Adxyc.VD6Z90TG5RAw6VwOv3pbK" +
+                "client_id=3MVG9wt4IL4O5wvIrDAEJFQDJvMD4VqtSegQFnTAt88EWyGBs3gWpoFgA5Adxyc.VD6Z90TG5RAw6VwOv3pbK&" +
                 "redirect_uri=https://shri0900.github.io/Integration/";
 
             window.location.href = url;
@@ -39,10 +25,36 @@
             instanceUrl = params.get("instance_url");
         }
 
+        function sendToSalesforce() {
+            const accountName = document.getElementById("accountName").value;
+            if (accessToken && instanceUrl) {
+                fetch(instanceUrl + "/services/data/v53.0/sobjects/Account", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": "Bearer " + accessToken,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        Name: accountName
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    alert("Data sent to Salesforce!");
+                })
+                .catch(error => {
+                    console.error("Error sending data to Salesforce:", error);
+                });
+            } else {
+                alert("Not authenticated with Salesforce.");
+            }
+        }
+
         window.onload = () => {
             parseReturnedHash();
         }
-
+        
         function getAccountInfo() {
             const accountId = document.getElementById('accountId').value;
 
@@ -67,5 +79,18 @@
             }
         }
     </script>
+</head>
+<body>
+    <button onclick="authenticate()">Authenticate with Salesforce</button>
+    <br><br>
+    <input type="text" id="accountName" placeholder="Enter Account Name">
+    <button onclick="sendToSalesforce()">Send to Salesforce</button>
+
+    <h2>Retrieve Account Information from Salesforce</h2>
+    <label for="accountId">Enter Account ID:</label>
+    <input type="text" id="accountId">
+    <button onclick="getAccountInfo()">Fetch Account Info</button>
+    <h3>Account Information:</h3>
+    <pre id="accountInfo"></pre>
 </body>
 </html>
